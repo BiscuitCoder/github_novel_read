@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: '.next_v2',
+  // distDir: '.next', // Reverted to default
   // output: 'export', // Disabled to allow Server Actions
   typescript: {
     ignoreBuildErrors: true,
