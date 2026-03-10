@@ -1,231 +1,322 @@
-
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Folder, FileText, ArrowLeft, BookOpen, ChevronRight, Home, Loader2, Book } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { Fragment, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Book, BookOpen, Home, Library, Loader2, User } from 'lucide-react'
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { cn } from "@/lib/utils"
 import { getRepoContentsAction, getFileContentAction } from "@/app/actions"
 import { GitHubFile, parseGitHubUrl } from "@/lib/github"
 
 interface BookshelfProps {
   initialRepoUrl?: string
+  mode?: 'home' | 'author' | 'book'
 }
 
-export function Bookshelf({ initialRepoUrl = "https://github.com/VeejaLiu/ScienceFictionCollection" }: BookshelfProps) {
-  const [repoUrl, setRepoUrl] = useState(initialRepoUrl)
-  const [currentPath, setCurrentPath] = useState<string[]>([])
+export function Bookshelf({ initialRepoUrl = "https://github.com/VeejaLiu/ScienceFictionCollection", mode = 'home' }: BookshelfProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const repoUrl = searchParams.get('repo') || initialRepoUrl
+  
+  // Logic based on mode
+  let author = ''
+  let book = ''
+
+  if (mode === 'author') {
+    author = searchParams.get('name') || ''
+  } else if (mode === 'book') {
+    author = searchParams.get('author') || ''
+    book = searchParams.get('name') || ''
+  }
+
   const [contents, setContents] = useState<GitHubFile[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'shelf' | 'reader'>('shelf')
-  const [currentFile, setCurrentFile] = useState<GitHubFile | null>(null)
   const [fileContent, setFileContent] = useState<string | null>(null)
+  const [currentFile, setCurrentFile] = useState<GitHubFile | null>(null)
+
+  const isReaderMode = mode === 'book'
+  const repoInfo = parseGitHubUrl(repoUrl)
 
   useEffect(() => {
-    if (repoUrl) {
-      loadContents(repoUrl, currentPath.join('/'))
-    }
-  }, [repoUrl, currentPath]) // Only fetch when these change
+    // Validate required params for the mode
+    if (mode === 'author' && !author) return
+    if (mode === 'book' && (!author || !book)) return
 
-  const loadContents = async (url: string, path: string) => {
+    if (repoUrl) {
+      loadData(repoUrl, author, book)
+    }
+  }, [repoUrl, author, book, mode])
+
+  const loadData = async (url: string, currentAuthor: string, currentBook: string) => {
     setLoading(true)
     setError(null)
+    setFileContent(null)
+    setCurrentFile(null)
+
     try {
+      if (mode === 'book') {
+        const filePath = `${currentAuthor}/${currentBook}`
+        const result = await getRepoContentsAction(url, filePath)
+        if (result.error) {
+          setError(result.error)
+          setContents([])
+          return
+        }
+
+        const data = result.contents
+        if (data && !Array.isArray(data) && data.type === 'file') {
+          setCurrentFile(data as GitHubFile)
+          if (data.download_url) {
+            const contentResult = await getFileContentAction(data.download_url)
+            if (contentResult.error) {
+              setError(contentResult.error)
+            } else {
+              setFileContent(contentResult.content || "")
+            }
+          } else {
+            setError("无法下载文件")
+          }
+        }
+        return
+      }
+
+      // mode 'home' or 'author'
+      const path = currentAuthor || ''
       const result = await getRepoContentsAction(url, path)
+      
       if (result.error) {
         setError(result.error)
         setContents([])
-      } else {
-        setContents(result.contents || [])
+        return
+      }
+
+      const data = result.contents
+
+      if (Array.isArray(data)) {
+        if (mode === 'author') {
+          // List books
+          const files = data.filter((item) => item.type === 'file' && (item.name.endsWith('.txt') || item.name.endsWith('.md')))
+          setContents(files)
+        } else {
+          // List authors (directories)
+          const dirs = data.filter((item) => item.type === 'dir')
+          setContents(dirs)
+        }
       }
     } catch (e) {
-      setError("An unexpected error occurred")
+      setError("发生未知错误")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleFolderClick = (folderName: string) => {
-    setCurrentPath([...currentPath, folderName])
+  const updateRepo = (newUrl: string) => {
+    const params = new URLSearchParams()
+    if (newUrl) {
+      params.set('repo', newUrl)
+    }
+    router.push(`/?${params.toString()}`)
   }
 
-  const handleFileClick = async (file: GitHubFile) => {
-    if (file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-      setLoading(true)
-      setCurrentFile(file)
-      try {
-        if (file.download_url) {
-            const result = await getFileContentAction(file.download_url)
-            if (result.error) {
-                setError(result.error)
-            } else {
-                setFileContent(result.content || "")
-                setViewMode('reader')
-            }
-        } else {
-            setError("Cannot download file")
-        }
-      } catch (e) {
-        setError("Failed to load file content")
-      } finally {
-        setLoading(false)
-      }
-    } else {
-      // Maybe handle other file types later
-      alert("Only .txt and .md files are supported for reading right now.")
-    }
+  const handleAuthorClick = (name: string) => {
+    const params = new URLSearchParams()
+    if (repoUrl !== initialRepoUrl) params.set('repo', repoUrl)
+    params.set('name', name)
+    router.push(`/author?${params.toString()}`)
   }
 
-  const handleBack = () => {
-    if (viewMode === 'reader') {
-      setViewMode('shelf')
-      setFileContent(null)
-      setCurrentFile(null)
-    } else if (currentPath.length > 0) {
-      setCurrentPath(currentPath.slice(0, -1))
-    }
+  const handleBookClick = (file: GitHubFile) => {
+    const params = new URLSearchParams()
+    if (repoUrl !== initialRepoUrl) params.set('repo', repoUrl)
+    params.set('author', author)
+    params.set('name', file.name)
+    router.push(`/book?${params.toString()}`)
   }
 
   const handleHome = () => {
-    setViewMode('shelf')
-    setCurrentPath([])
-    setFileContent(null)
-    setCurrentFile(null)
+    const params = new URLSearchParams()
+    if (repoUrl !== initialRepoUrl) params.set('repo', repoUrl)
+    router.push(`/?${params.toString()}`)
   }
-
-  const repoInfo = parseGitHubUrl(repoUrl)
+  
+  const handleAuthorBreadcrumb = () => {
+     handleAuthorClick(author)
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] w-full max-w-7xl mx-auto p-4 gap-4">
-      {/* Header / Navigation */}
-      <div className="flex items-center gap-2 mb-4 p-4 bg-background border rounded-lg shadow-sm">
-        <Button variant="ghost" size="icon" onClick={handleHome} disabled={loading}>
-          <Home className="h-5 w-5" />
-        </Button>
-        
-        <div className="flex items-center gap-1 text-sm text-muted-foreground overflow-hidden">
-            <span className="font-semibold text-foreground whitespace-nowrap">
-                {repoInfo ? `${repoInfo.repo}` : 'Bookshelf'}
-            </span>
-            {currentPath.map((part, index) => (
-                <div key={index} className="flex items-center">
-                    <ChevronRight className="h-4 w-4" />
-                    <span className="whitespace-nowrap">{part}</span>
-                </div>
-            ))}
-            {currentFile && viewMode === 'reader' && (
-                <div className="flex items-center font-medium text-foreground">
-                    <ChevronRight className="h-4 w-4" />
-                    <span className="truncate max-w-[200px]">{currentFile.name}</span>
-                </div>
-            )}
+      <div className="flex flex-col gap-4 mb-2 p-6 bg-background border rounded-xl shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Library className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold tracking-tight">
+              {repoInfo ? repoInfo.repo : 'Bookshelf'}
+            </h1>
+          </div>
+          <div className="flex gap-2">
+            <Input 
+              defaultValue={repoUrl} 
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  updateRepo(e.currentTarget.value)
+                }
+              }}
+              onBlur={(e) => {
+                if (e.target.value !== repoUrl) {
+                  updateRepo(e.target.value)
+                }
+              }}
+              placeholder="GitHub Repo URL"
+              className="w-[300px]"
+            />
+          </div>
         </div>
 
-        <div className="ml-auto flex gap-2">
-            <Input 
-                value={repoUrl} 
-                onChange={(e) => setRepoUrl(e.target.value)} 
-                placeholder="GitHub Repo URL"
-                className="w-[300px]"
-            />
-            <Button onClick={() => loadContents(repoUrl, "")} disabled={loading}>
-                Load
-            </Button>
-        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink 
+                className="cursor-pointer flex items-center gap-1" 
+                onClick={handleHome}
+              >
+                <Home className="h-4 w-4" />
+                首页
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+
+            {mode !== 'home' && author && (
+              <Fragment>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  {mode === 'book' ? (
+                    <BreadcrumbLink className="cursor-pointer" onClick={handleAuthorBreadcrumb}>
+                      {author}
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage className="font-semibold">
+                      {author}
+                    </BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
+            )}
+
+            {mode === 'book' && book && (
+              <Fragment>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="font-semibold">
+                    {book.replace(/\.(txt|md)$/, '')}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </Fragment>
+            )}
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 overflow-hidden relative">
         {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-50">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-50 backdrop-blur-sm">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
         )}
 
         {error && (
             <div className="p-4 text-red-500 bg-red-50 border border-red-200 rounded-md">
-                Error: {error}
+                {error}
             </div>
         )}
 
-        {!loading && !error && viewMode === 'shelf' && (
+        {!loading && !error && !isReaderMode && (
             <ScrollArea className="h-full">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
-                    {/* Back Button for subdirectories */}
-                    {currentPath.length > 0 && (
-                        <Card 
-                            className="cursor-pointer hover:bg-accent transition-colors flex flex-col items-center justify-center h-[200px] border-dashed"
-                            onClick={handleBack}
-                        >
-                            <ArrowLeft className="h-12 w-12 text-muted-foreground mb-2" />
-                            <span className="font-medium text-muted-foreground">Back</span>
-                        </Card>
-                    )}
+                <div className="p-1">
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold mb-2">
+                            {mode === 'author' ? "作品列表" : "作家列表"}
+                        </h2>
+                        <p className="text-muted-foreground text-sm">
+                            {mode === 'author'
+                              ? `当前作者：${author}` 
+                              : "选择一个作家进入其作品列表"}
+                        </p>
+                    </div>
 
-                    {contents.map((item) => (
-                        <Card 
-                            key={item.path} 
-                            className={cn(
-                                "cursor-pointer hover:shadow-md transition-all group overflow-hidden relative h-[200px] flex flex-col",
-                                item.type === 'dir' ? "bg-amber-50/50 hover:bg-amber-100/50 dark:bg-amber-950/10" : "bg-white dark:bg-zinc-900"
-                            )}
-                            onClick={() => item.type === 'dir' ? handleFolderClick(item.name) : handleFileClick(item)}
-                        >
-                            <div className={cn(
-                                "h-2 w-full absolute top-0 left-0",
-                                item.type === 'dir' ? "bg-amber-400" : "bg-blue-400"
-                            )} />
-                            
-                            <CardContent className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                                {item.type === 'dir' ? (
-                                    <Folder className="h-16 w-16 text-amber-400 mb-4 group-hover:scale-110 transition-transform" />
-                                ) : (
-                                    <Book className="h-16 w-16 text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        {contents.map((item) => (
+                            <Card 
+                                key={item.path} 
+                                className={cn(
+                                    "cursor-pointer hover:shadow-lg transition-all group overflow-hidden relative h-[240px] flex flex-col border-2 hover:border-primary/50",
+                                    mode === 'author' ? "bg-white dark:bg-zinc-900" : "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20"
                                 )}
-                                <h3 className="font-medium line-clamp-2 text-sm break-words w-full">
-                                    {item.name.replace(/\.(txt|md)$/, '')}
-                                </h3>
-                                {item.type === 'file' && (
-                                    <span className="text-xs text-muted-foreground mt-1">
-                                        {(item.size / 1024).toFixed(1)} KB
-                                    </span>
-                                )}
-                            </CardContent>
-                        </Card>
-                    ))}
-                    
-                    {contents.length === 0 && !loading && (
-                        <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground">
-                            <BookOpen className="h-16 w-16 mb-4 opacity-20" />
-                            <p>This shelf is empty.</p>
-                        </div>
-                    )}
+                                onClick={() => mode === 'author' ? handleBookClick(item) : handleAuthorClick(item.name)}
+                            >
+                                <div className={cn(
+                                    "h-3 w-full absolute top-0 left-0",
+                                    mode === 'author' ? "bg-blue-500" : "bg-amber-500"
+                                )} />
+                                
+                                <CardContent className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
+                                    <div className={cn(
+                                        "p-4 rounded-full transition-transform group-hover:scale-110",
+                                        mode === 'author' ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400" : "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400"
+                                    )}>
+                                        {mode === 'author' ? <Book className="h-8 w-8" /> : <User className="h-8 w-8" />}
+                                    </div>
+                                    
+                                    <div className="w-full">
+                                        <h3 className="font-bold line-clamp-2 text-base break-words w-full leading-tight">
+                                            {item.name.replace(/\.(txt|md)$/, '')}
+                                        </h3>
+                                        {mode === 'author' && (
+                                            <p className="text-xs text-muted-foreground mt-2">
+                                                {(item.size / 1024).toFixed(1)} KB
+                                            </p>
+                                        )}
+                                        {mode === 'home' && (
+                                            <p className="text-xs text-muted-foreground mt-2 font-medium uppercase tracking-wider">
+                                                作者
+                                            </p>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                        
+                        {contents.length === 0 && !loading && (
+                            <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground">
+                                <BookOpen className="h-16 w-16 mb-4 opacity-20" />
+                                <p>当前列表为空</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </ScrollArea>
         )}
 
-        {!loading && !error && viewMode === 'reader' && fileContent && (
-            <div className="h-full flex flex-col bg-amber-50 dark:bg-zinc-950 rounded-lg shadow-inner overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-                    <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
-                        <ArrowLeft className="h-4 w-4" /> Back to Shelf
-                    </Button>
-                    <span className="font-serif font-bold text-lg truncate px-4">
-                        {currentFile?.name.replace(/\.(txt|md)$/, '')}
-                    </span>
-                    <div className="w-[100px]"></div> {/* Spacer for alignment */}
-                </div>
-                <ScrollArea className="flex-1">
+        {!loading && !error && isReaderMode && fileContent && (
+            <div className="h-full flex flex-col bg-amber-50 dark:bg-zinc-950 rounded-lg shadow-inner overflow-hidden border">
+                <div className="flex-1 overflow-y-auto">
                     <div className="max-w-3xl mx-auto p-8 md:p-12 lg:p-16">
-                        <article className="prose prose-lg dark:prose-invert prose-stone mx-auto font-serif leading-relaxed whitespace-pre-wrap">
+                         <div className="mb-8 pb-4 border-b border-stone-200 dark:border-stone-800 text-center">
+                            <h1 className="font-serif font-bold text-3xl md:text-4xl text-foreground mb-4">
+                                {currentFile?.name.replace(/\.(txt|md)$/, '') || book.replace(/\.(txt|md)$/, '')}
+                            </h1>
+                            <p className="text-sm text-muted-foreground font-serif italic">
+                                {author ? `作者：${author}` : '作者未知'}
+                            </p>
+                         </div>
+                        <article className="prose prose-lg dark:prose-invert prose-stone mx-auto font-serif leading-relaxed whitespace-pre-wrap text-justify">
                             {fileContent}
                         </article>
                     </div>
-                </ScrollArea>
+                </div>
             </div>
         )}
       </div>

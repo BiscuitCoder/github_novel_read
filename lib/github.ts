@@ -29,7 +29,7 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
   }
 }
 
-export async function fetchRepoContents(owner: string, repo: string, path: string = ""): Promise<GitHubFile[]> {
+export async function fetchRepoContents(owner: string, repo: string, path: string = ""): Promise<GitHubFile[] | GitHubFile> {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
   const response = await fetch(url, {
     headers: {
@@ -45,9 +45,8 @@ export async function fetchRepoContents(owner: string, repo: string, path: strin
   const data = await response.json();
   
   if (!Array.isArray(data)) {
-    // If it's a single file, GitHub returns an object, not an array.
-    // But for this function, we expect a directory listing.
-    throw new Error("Path is not a directory");
+    // If it's a single file, GitHub returns an object.
+    return data;
   }
 
   // Sort: Directories first, then files
