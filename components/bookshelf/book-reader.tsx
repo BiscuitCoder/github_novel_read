@@ -10,9 +10,9 @@ interface BookReaderProps {
 
 export function BookReader({ title, author, content }: BookReaderProps) {
   return (
-    <div className="flex-1 flex flex-col bg-amber-50 dark:bg-amber-950/30 rounded-xl shadow-inner overflow-hidden border min-h-[400px]">
+    <div className="flex-1 flex flex-col bg-amber-50 dark:bg-amber-950/30 rounded-xl md:shadow-inner overflow-hidden min-h-[400px] md:border">
       <ReadingProgressBar>
-        <div className="max-w-3xl mx-auto p-6 md:p-10 lg:p-14">
+        <div className="w-full md:max-w-3xl mx-auto px-3 py-4 md:px-10 md:py-10 lg:px-14 lg:py-14">
           <div className="mb-8 pb-6 border-b border-border text-center">
             <h1 className="font-serif font-bold text-2xl md:text-3xl text-foreground mb-3">
               {title}
@@ -21,7 +21,7 @@ export function BookReader({ title, author, content }: BookReaderProps) {
               {author ? `作者：${author}` : '作者未知'}
             </p>
           </div>
-          <article className="prose prose-lg dark:prose-invert prose-stone mx-auto font-serif leading-loose whitespace-pre-wrap text-justify">
+          <article className="prose prose-lg dark:prose-invert prose-stone mx-auto font-serif leading-loose whitespace-pre-wrap text-justify text-xl">
             {content}
           </article>
         </div>
