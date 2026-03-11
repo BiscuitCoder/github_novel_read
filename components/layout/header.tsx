@@ -34,7 +34,9 @@ export function Header() {
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
             <BookOpen className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl hidden sm:inline">GitHub 小说阅读器</span>
+            <span className="font-bold text-xl hidden sm:inline">KK 科幻空间</span>
+            <b>|</b>
+            <small className="text-[10px] text-muted-foreground md:text-sm">世界随时间驶向荒芜，我们都将是熵的信徒</small>
           </Link>
         </div>
 

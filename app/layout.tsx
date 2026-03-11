@@ -5,8 +5,8 @@ import { Footer } from '@/components/layout/footer'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'GitHub 小说阅读器 | 输入带 txt 的仓库地址，自动生成分类与阅读页面',
-  description: 'GitHub 小说阅读器，输入带 txt 的仓库地址，自动生成分类与阅读页面。',
+  title: 'KK 科幻空间 | 输入带 txt 的仓库地址，自动生成分类与阅读页面',
+  description: 'KK 科幻空间，输入带 txt 的仓库地址，自动生成分类与阅读页面。',
   icons: {
     icon: [
       {
