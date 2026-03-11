@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Menu, X, Github, Moon, Sun } from "lucide-react"
+import { Menu, X, Github, Moon, Sun, BookOpen } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
+const REPO_URL = "https://github.com/BiscuitCoder/github_novel_read"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -26,34 +28,16 @@ export function Header() {
     document.documentElement.classList.toggle("dark")
   }
 
-  const navItems = [
-    { href: "/", label: "首页" },
-    { href: "/components", label: "组件" },
-    { href: "/docs", label: "文档" },
-    { href: "/examples", label: "示例" },
-  ]
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center mx-auto px-4">
         <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold text-xl">Template</span>
+          <Link href="/" className="flex items-center space-x-2">
+            <BookOpen className="h-6 w-6 text-primary" />
+            <span className="font-bold text-xl hidden sm:inline">GitHub 小说阅读器</span>
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
@@ -67,33 +51,30 @@ export function Header() {
 
           <Button variant="ghost" size="icon" asChild>
             <a
-              href="https://github.com"
+              href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
             >
               <Github className="h-5 w-5" />
-              <span className="sr-only">GitHub</span>
+              <span className="sr-only">GitHub 仓库</span>
             </a>
           </Button>
 
-          {/* Mobile Menu */}
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon">
-                {isMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 <span className="sr-only">菜单</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {navItems.map((item) => (
-                <DropdownMenuItem key={item.href} asChild>
-                  <Link href={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
-              ))}
+              <DropdownMenuItem asChild>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+                  GitHub 仓库
+                </a>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -1,15 +1,12 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: 'Next.js 静态模板 | 现代化组件库',
-  description: '一个功能完善的 Next.js 静态模板项目，包含 50+ 精选组件、深色模式支持、完整的类型安全，开箱即用。',
-  generator: 'v0.app',
+  title: 'GitHub 小说阅读器 | 输入带 txt 的仓库地址，自动生成分类与阅读页面',
+  description: 'GitHub 小说阅读器，输入带 txt 的仓库地址，自动生成分类与阅读页面。',
   icons: {
     icon: [
       {
@@ -35,9 +32,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased">
-        {children}
+    <html lang="zh-CN">
+      <body className="font-sans antialiased flex min-h-screen flex-col">
+        <Header />
+        <div className="flex-1 flex flex-col">
+          {children}
+        </div>
+        <Footer />
         <Analytics />
       </body>
     </html>

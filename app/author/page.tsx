@@ -1,18 +1,17 @@
+import { redirect } from 'next/navigation'
 
-import { Suspense } from 'react'
-import { Bookshelf } from "@/components/bookshelf"
-import { Loader2 } from 'lucide-react'
+export default async function AuthorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ name?: string; repo?: string }>
+}) {
+  const params = await searchParams
+  const author = params.name || ''
+  const repo = params.repo || ''
 
-export default function AuthorPage() {
-  return (
-    <main className="min-h-screen bg-background">
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      }>
-        <Bookshelf mode="author" />
-      </Suspense>
-    </main>
-  )
+  const query = new URLSearchParams()
+  if (author) query.set('author', author)
+  if (repo) query.set('repo', repo)
+
+  redirect(`/?${query.toString()}`)
 }
