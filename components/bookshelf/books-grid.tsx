@@ -7,10 +7,19 @@ import { BookCover } from './book-cover'
 interface BooksGridProps {
   books: GitHubFile[]
   author: string
+  repoUrl?: string
+  initialRepoUrl?: string
   onBookClick: (file: GitHubFile) => void
 }
 
-export function BooksGrid({ books, author, onBookClick }: BooksGridProps) {
+export function BooksGrid({
+  books,
+  author,
+  repoUrl = '',
+  initialRepoUrl = '',
+  onBookClick,
+}: BooksGridProps) {
+  const repoKey = repoUrl && repoUrl !== initialRepoUrl ? repoUrl : ''
   return (
     <div className="flex-1 min-w-0 border rounded-xl bg-card">
       <div className="p-4 border-b bg-muted/30">
@@ -30,6 +39,8 @@ export function BooksGrid({ books, author, onBookClick }: BooksGridProps) {
               <BookCover
                 key={item.path}
                 book={item}
+                author={author}
+                repoKey={repoKey}
                 onClick={() => onBookClick(item)}
               />
             ))}

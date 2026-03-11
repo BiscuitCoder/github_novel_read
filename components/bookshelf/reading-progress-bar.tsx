@@ -2,35 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-
-const STORAGE_PREFIX = 'novel-reader:'
-
-function getStorageKey(repo: string, author: string, name: string) {
-  return `${STORAGE_PREFIX}${repo}:${author}:${name}`
-}
-
-function loadProgress(key: string): number {
-  if (typeof window === 'undefined') return 0
-  try {
-    const saved = localStorage.getItem(key)
-    if (saved != null) {
-      const ratio = parseFloat(saved)
-      if (ratio >= 0 && ratio <= 1) return ratio
-    }
-  } catch {
-    // ignore
-  }
-  return 0
-}
-
-function saveProgress(key: string, ratio: number) {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(key, String(ratio))
-  } catch {
-    // ignore
-  }
-}
+import { getStorageKey, loadProgress, saveProgress } from '@/lib/reading-progress'
 
 interface ReadingProgressBarProps {
   children: React.ReactNode

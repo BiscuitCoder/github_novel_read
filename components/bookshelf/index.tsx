@@ -68,6 +68,8 @@ export function Bookshelf({
             <BooksGrid
               books={books}
               author={author}
+              repoUrl={repoUrl}
+              initialRepoUrl={initialRepoUrl}
               onBookClick={handleBookClick}
             />
           </>
