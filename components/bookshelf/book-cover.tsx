@@ -1,6 +1,5 @@
 'use client'
 
-import { Book } from 'lucide-react'
 import { GitHubFile } from '@/lib/github'
 import { estimateReadingTime } from '@/lib/reading-time'
 
@@ -30,22 +29,16 @@ export function BookCover({ book, onClick }: BookCoverProps) {
 
         {/* 封面内容 */}
         <div className="flex-1 flex flex-col items-center justify-center p-4 relative z-10">
-          <div className="w-12 h-12 rounded-full bg-amber-200/60 dark:bg-amber-800/20 flex items-center justify-center text-amber-600/80 dark:text-amber-500/70 mb-4 transition-transform group-hover:scale-110">
-            <Book className="h-6 w-6" strokeWidth={1.5} />
-          </div>
-          <h3 className="font-serif font-semibold text-sm line-clamp-3 break-words leading-relaxed text-amber-800 dark:text-amber-300 text-center">
+          <h3 className="font-serif font-semibold text-2xl line-clamp-3 break-words leading-relaxed text-amber-800 dark:text-amber-300 text-center">
             {title}
           </h3>
-          <p className="mt-2 text-[10px] text-amber-600 dark:text-amber-400">
-            {readingTime}
-          </p>
-          <p className="mt-0.5 text-[10px] text-amber-500 dark:text-amber-500/70">
-            {sizeKb} KB
-          </p>
         </div>
 
-        {/* 底部装饰线 */}
-        <div className="h-0.5 bg-amber-200/50 dark:bg-amber-700/20" aria-hidden />
+        {/* 底部信息 */}
+        <div className="flex items-center justify-between gap-3 px-3 py-2 bg-amber-100/50 dark:bg-amber-900/20 border-t border-amber-200/50 dark:border-amber-800/20">
+          <span className="text-[10px] text-amber-800 dark:text-amber-400">{readingTime}</span>
+          <span className="text-[10px] text-amber-800 dark:text-amber-500/90">{sizeKb} KB</span>
+        </div>
       </div>
     </button>
   )

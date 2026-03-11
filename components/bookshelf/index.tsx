@@ -44,7 +44,7 @@ export function Bookshelf({
         <RepoInput repoUrl={repoUrl} onConfirm={handleConfirm} />
       )}
 
-      <div className="relative flex-1 flex flex-col md:flex-row gap-4">
+      <div className="relative flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 z-50 backdrop-blur-sm rounded-xl">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -57,7 +57,7 @@ export function Bookshelf({
           </div>
         )}
 
-        {!loading && !error && !isReaderMode && (
+        {!error && !isReaderMode && (
           <>
             <AuthorSidebar
               authors={authors}
