@@ -12,8 +12,19 @@ const shanhaiFont = localFont({
 })
 
 export const metadata: Metadata = {
-  title: 'KK 科幻空间 | 输入带 txt 的仓库地址，自动生成分类与阅读页面',
-  description: 'KK 科幻空间，输入带 txt 的仓库地址，自动生成分类与阅读页面。',
+  title: {
+    default: 'KK 科幻空间 | 科幻作家作品免费在线阅读',
+    template: '%s | KK 科幻空间',
+  },
+  description:
+    'KK 科幻空间收录众多科幻作家的经典作品，刘慈欣、何夕、王晋康等名家小说免费在线阅读，无广告、无付费，畅享硬科幻、赛博朋克、太空歌剧等全品类科幻小说。',
+  keywords: ['科幻小说免费', '科幻作家', '科幻在线阅读', '免费科幻', '硬科幻', '赛博朋克'],
+  authors: [{ name: 'KK 科幻空间' }],
+  openGraph: {
+    title: 'KK 科幻空间 | 科幻作家作品免费在线阅读',
+    description:
+      '收录各类科幻作家小说，免费在线阅读，无付费无广告，畅享刘慈欣、何夕等名家科幻作品。',
+  },
   icons: {
     icon: [
       {
