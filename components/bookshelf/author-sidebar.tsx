@@ -51,7 +51,7 @@ export function AuthorSidebar({
   )
 
   return (
-    <aside className="w-full md:w-56 lg:w-64 shrink-0 border rounded-xl bg-card">
+    <aside className="w-full md:w-56 lg:w-64 shrink-0 border rounded-xl">
       <div className="p-3 border-b bg-muted/50">
         <h2 className="font-semibold text-sm flex items-center gap-2">
           <User className="h-4 w-4" />

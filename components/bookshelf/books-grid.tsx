@@ -21,7 +21,7 @@ export function BooksGrid({
 }: BooksGridProps) {
   const repoKey = repoUrl && repoUrl !== initialRepoUrl ? repoUrl : ''
   return (
-    <div className="flex-1 min-w-0 border rounded-xl bg-card">
+    <div className="flex-1 min-w-0 border rounded-xl">
       <div className="p-4 border-b bg-muted/30">
         <h2 className="font-semibold text-sm">
           {author ? `${author} 的 ${books.length} 部作品` : '作品列表'}

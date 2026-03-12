@@ -1,8 +1,15 @@
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import localFont from 'next/font/local'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import './globals.css'
+
+const shanhaiFont = localFont({
+  src: '../fonts/AaGuDianKeBenSong-2.ttf',
+  variable: '--font-shanhai',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'KK 科幻空间 | 输入带 txt 的仓库地址，自动生成分类与阅读页面',
@@ -32,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className={shanhaiFont.variable}>
       <body className="font-sans antialiased flex min-h-screen flex-col">
         <Header />
         <div className="flex-1 flex flex-col">

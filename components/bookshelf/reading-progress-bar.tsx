@@ -16,26 +16,42 @@ export function ReadingProgressBar({ children }: ReadingProgressBarProps) {
   const storageKey = getStorageKey(repo, author, name)
   const [progress, setProgress] = useState(0)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastValidProgressRef = useRef(0)
+  const lastResizeRef = useRef({ w: 0, h: 0 })
 
   const getScrollMetrics = useCallback(() => {
     if (typeof window === 'undefined') {
       return { scrollTop: 0, maxScroll: 0 }
     }
-    const doc = document.documentElement
-    const scrollTop = window.scrollY || doc.scrollTop || 0
-    const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 0)
+    const el = document.scrollingElement ?? document.documentElement
+    const scrollTop = window.scrollY ?? el.scrollTop ?? 0
+    // 使用 documentElement.clientHeight 而非 window.innerHeight，避免移动端地址栏显隐导致的高度抖动
+    const viewportHeight = document.documentElement.clientHeight
+    const scrollHeight = Math.max(
+      document.body?.scrollHeight ?? 0,
+      document.documentElement.scrollHeight
+    )
+    const maxScroll = Math.max(scrollHeight - viewportHeight, 0)
     return { scrollTop, maxScroll }
   }, [])
 
   const updateProgress = useCallback(() => {
     const { scrollTop, maxScroll } = getScrollMetrics()
-    const ratio = maxScroll > 0 ? scrollTop / maxScroll : 0
+    let ratio: number
+    if (maxScroll > 0) {
+      ratio = scrollTop / maxScroll
+      lastValidProgressRef.current = Math.round(ratio * 1000) / 10
+    } else {
+      // maxScroll 为 0 时可能是移动端视口切换的中间态，保留上一次有效值避免跳到 0%
+      ratio = lastValidProgressRef.current / 100
+    }
     setProgress(Math.round(ratio * 1000) / 10)
     return ratio
   }, [getScrollMetrics])
 
   useEffect(() => {
     const ratio = loadProgress(storageKey)
+    lastValidProgressRef.current = Math.round(ratio * 1000) / 10
     const scrollToRatio = () => {
       const { maxScroll } = getScrollMetrics()
       const targetTop = ratio * maxScroll
@@ -50,12 +66,29 @@ export function ReadingProgressBar({ children }: ReadingProgressBarProps) {
     const rafId = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(scrollToRatio)
     })
-    window.addEventListener('resize', scrollToRatio)
+    lastResizeRef.current = {
+      w: typeof window !== 'undefined' ? window.innerWidth : 0,
+      h: typeof window !== 'undefined' ? document.documentElement.clientHeight : 0,
+    }
+    const handleResize = () => {
+      const w = window.innerWidth
+      const h = document.documentElement.clientHeight
+      const prev = lastResizeRef.current
+      lastResizeRef.current = { w, h }
+      // 移动端地址栏显隐通常只改变高度且变化较小，旋转屏幕会改变宽度；仅对「真实」resize 执行恢复滚动
+      const widthChanged = Math.abs(w - prev.w) > 50
+      if (widthChanged) {
+        scrollToRatio()
+      } else {
+        updateProgress()
+      }
+    }
+    window.addEventListener('resize', handleResize)
     return () => {
       window.cancelAnimationFrame(rafId)
-      window.removeEventListener('resize', scrollToRatio)
+      window.removeEventListener('resize', handleResize)
     }
-  }, [getScrollMetrics, storageKey])
+  }, [getScrollMetrics, storageKey, updateProgress])
 
   useEffect(() => {
     const handleScroll = () => {
