@@ -23,10 +23,10 @@ export function RepoInput({ repoUrl, onConfirm }: RepoInputProps) {
         ref={inputRef}
         defaultValue={repoUrl}
         onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
-        placeholder="GitHub 仓库地址 (含 txt 文件)"
+        placeholder="输入 GitHub 仓库地址 (含 txt 文件)"
         className="flex-1 min-w-0"
       />
-      <Button onClick={handleConfirm}>确认</Button>
+      <Button onClick={handleConfirm}>加载</Button>
     </div>
   )
 }

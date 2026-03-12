@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GitHubFile } from '@/lib/github'
 import { estimateReadingTime } from '@/lib/reading-time'
@@ -65,17 +66,21 @@ export function BookCover({ book, author, repoKey, onClick }: BookCoverProps) {
           <div className="flex items-center justify-between gap-3">
             <span className="text-[10px] text-amber-800 dark:text-amber-400">
               {readingTime}
-              {progress > 0 && (
-              <span className="text-[10px]tabular-nums">
-                ｜ {progress.toFixed(0)}%
-                </span>
-              )}
+              
               
             </span>
             <div className="flex items-center gap-2">
-            <span className="text-[10px] text-amber-800 dark:text-amber-500/90">
+            {/* <span className="text-[10px] text-amber-800 dark:text-amber-500/90">
               {sizeKb} KB
-            </span>
+            </span> */}
+
+              {progress > 0 && (
+              <span className="flex items-center gap-1 text-[10px] tabular-nums text-amber-800 dark:text-amber-400">
+                <Eye className="size-3 shrink-0" />
+                {progress.toFixed(0)}%
+              </span>
+              )}
+
             </div>
           </div>
         </div>
