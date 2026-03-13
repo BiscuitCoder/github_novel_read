@@ -7,6 +7,15 @@ import { GitHubFile } from '@/lib/github'
 import { estimateReadingTime } from '@/lib/reading-time'
 import { getStorageKey, loadProgress } from '@/lib/reading-progress'
 
+/**
+ * 若标题中包含书名号《》，则只提取书名显示（不含《》）；否则原样返回
+ */
+function formatDisplayTitle(rawTitle: string): string {
+  const matches = rawTitle.matchAll(/《([^》]+)》/g)
+  const titles = [...matches].map((m) => m[1])
+  return titles.length > 0 ? titles.join(' ') : rawTitle
+}
+
 interface BookCoverProps {
   book: GitHubFile
   author: string
@@ -15,7 +24,8 @@ interface BookCoverProps {
 }
 
 export function BookCover({ book, author, repoKey, onClick }: BookCoverProps) {
-  const title = book.name.replace(/\.(txt|md)$/, '')
+  const rawTitle = book.name.replace(/\.(txt|md)$/, '')
+  const title = formatDisplayTitle(rawTitle)
   const sizeKb = (book.size / 1024).toFixed(1)
   const readingTime = estimateReadingTime(book.size)
 
@@ -27,21 +37,22 @@ export function BookCover({ book, author, repoKey, onClick }: BookCoverProps) {
   }, [repoKey, author, book.name])
 
   return (
-    <div
-      onClick={onClick}
-      className="group shadow-md hover:shadow-lg relative w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all"
-    >
-      {/* 书籍封面 - 竖版比例 2:3 */}
-      <div className="aspect-[2/3] flex flex-col bg-gradient-to-b from-amber-50 to-amber-100/80 dark:from-amber-950/20 dark:to-amber-900/25 border border-amber-200/80 dark:border-amber-800/20 shadow-sm">
+    <div className="w-full perspective-[1200px] [perspective-origin:center_center]">
+      <div
+        onClick={onClick}
+        className="group shadow-[-6px_0px_20px_-4px_rgba(0,0,0,0.15)] hover:shadow-[0_10px_28px_-4px_rgba(0,0,0,0.2)] relative w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm overflow-visible transition-all duration-300 ease-out origin-[50%_50%] hover:shadow-xl active:scale-[0.98] [transform-style:preserve-3d] hover:rotate-y-[0deg] rotate-y-[25deg] hover:scale-95 scale-80"
+      >
+        {/* 书籍封面 - 整体 3D 效果：以书中心为轴，hover 时书向前倾斜如平放 */}
+        <div className="aspect-[3/4] flex flex-col bg-gradient-to-b from-amber-50 to-amber-100/80 dark:from-amber-950/20 dark:to-amber-900/25 border border-amber-200/80 dark:border-amber-800/20 rounded-sm overflow-hidden">
         {/* 书脊效果 - 左侧浅色边 */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-200 to-amber-300 dark:from-amber-800/30 dark:to-amber-900/25 z-10 shadow-sm"
+          className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-200 to-amber-300 dark:from-amber-800/30 dark:to-amber-900/25 z-10"
           aria-hidden
         />
 
         {/* 封面内容 */}
-        <div className="flex-1 flex flex-col items-left justify-center p-4 relative z-10">
-          <b className="font-serif font-bold font-semibold text-xl text-left line-clamp-3 break-words leading-relaxed text-amber-800 dark:text-amber-300 text-center">
+        <div className="flex-1 flex flex-col items-left justify-start p-4 md:p-8 relative z-10">
+          <b className="font-serif font-bold font-semibold text-3xl text-left line-clamp-3 break-words leading-relaxed text-amber-800 dark:text-amber-300 text-center">
             {title}
           </b>
         </div>
@@ -66,8 +77,6 @@ export function BookCover({ book, author, repoKey, onClick }: BookCoverProps) {
           <div className="flex items-center justify-between gap-3">
             <span className="text-[10px] text-amber-800 dark:text-amber-400">
               {readingTime}
-              
-              
             </span>
             <div className="flex items-center gap-2">
             {/* <span className="text-[10px] text-amber-800 dark:text-amber-500/90">
@@ -83,6 +92,7 @@ export function BookCover({ book, author, repoKey, onClick }: BookCoverProps) {
 
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

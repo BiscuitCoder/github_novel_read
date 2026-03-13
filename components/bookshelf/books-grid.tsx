@@ -27,14 +27,14 @@ export function BooksGrid({
           {author ? `${author} 的 ${books.length} 部作品` : '作品列表'}
         </h2>
       </div>
-      <div className="p-4">
+      <div className="p-4 overflow-visible">
         {!author ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <BookOpen className="h-16 w-16 mb-4 opacity-20" />
             <p className="text-sm">请从左侧选择一位作家</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 overflow-visible">
             {books.map((item) => (
               <BookCover
                 key={item.path}
