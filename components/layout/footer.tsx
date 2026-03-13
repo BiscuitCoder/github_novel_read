@@ -10,7 +10,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
-            <span className="font-medium">KK 科幻空间</span>
+            <span className="font-medium">KK 科幻坊</span>
           </div>
           <a
             href={REPO_URL}
