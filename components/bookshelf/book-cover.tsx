@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { GitHubFile } from '@/lib/github'
 import { estimateReadingTime } from '@/lib/reading-time'
 import { getStorageKey, loadProgress } from '@/lib/reading-progress'
+import { AbstractLineSvg } from '@/components/abstract-line-svg'
 
 /**
  * 若标题中包含书名号《》，则只提取书名显示（不含《》）；否则原样返回
@@ -43,7 +44,8 @@ export function BookCover({ book, author, repoKey, onClick }: BookCoverProps) {
         className="group shadow-[-6px_0px_20px_-4px_rgba(0,0,0,0.15)] hover:shadow-[0_10px_28px_-4px_rgba(0,0,0,0.2)] relative w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm overflow-visible transition-all duration-300 ease-out origin-[50%_50%] hover:shadow-xl active:scale-[0.98] [transform-style:preserve-3d] hover:rotate-y-[0deg] rotate-y-[25deg] hover:scale-95 scale-80"
       >
         {/* 书籍封面 - 整体 3D 效果：以书中心为轴，hover 时书向前倾斜如平放 */}
-        <div className="aspect-[3/4] flex flex-col bg-gradient-to-b from-amber-50 to-amber-100/80 dark:from-amber-950/20 dark:to-amber-900/25 border border-amber-200/80 dark:border-amber-800/20 rounded-sm overflow-hidden">
+        <div className="aspect-[3/4] flex flex-col relative bg-gradient-to-b from-amber-50 to-amber-100/80 dark:from-amber-950/20 dark:to-amber-900/25 border border-amber-200/80 dark:border-amber-800/20 rounded-sm overflow-hidden">
+        <AbstractLineSvg seed={rawTitle} />
         {/* 书脊效果 - 左侧浅色边 */}
         <div
           className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-200 to-amber-300 dark:from-amber-800/30 dark:to-amber-900/25 z-10"
